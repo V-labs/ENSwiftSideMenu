@@ -193,7 +193,18 @@ public class ENSideMenu : NSObject, UIGestureRecognizerDelegate {
             sourceView.addGestureRecognizer(leftSwipeGestureRecognizer)
         }
         
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "deviceOrientationChanged:", name: UIDeviceOrientationDidChangeNotification, object: nil)
+        
     }
+    
+    func deviceOrientationChanged(notification: NSNotification) {
+        // Very great manner to avoid side menu to be misplaced on device orientation...
+        toggleMenu()
+        toggleMenu()
+    }
+    
+    
+    
     /**
     Initializes an instance of a `ENSideMenu` object.
     
