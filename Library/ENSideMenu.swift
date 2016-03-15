@@ -153,6 +153,7 @@ public class ENSideMenu : NSObject, UIGestureRecognizerDelegate {
     private var panRecognizer : UIPanGestureRecognizer?
     
     private var isOrientationChanging: Bool = false
+    private var lastOrientation: Int!
     
     /**
      Initializes an instance of a `ENSideMenu` object.
@@ -195,14 +196,27 @@ public class ENSideMenu : NSObject, UIGestureRecognizerDelegate {
             sourceView.addGestureRecognizer(leftSwipeGestureRecognizer)
         }
         
+        lastOrientation = (UIDevice.currentDevice().orientation.rawValue == 4) ? 3 : UIDevice.currentDevice().orientation.rawValue
+        
         NSNotificationCenter.defaultCenter().addObserver(self, selector: "deviceOrientationChanged:", name: UIDeviceOrientationDidChangeNotification, object: nil)
         
     }
     
     func deviceOrientationChanged(notification: NSNotification) {
         // Very great manner to avoid side menu to be misplaced on device orientation...
-        isOrientationChanging = true
-        toggleMenu(isMenuOpen)
+        
+        let device = UIDevice.currentDevice()
+        if device.generatesDeviceOrientationNotifications {
+            if device.orientation.rawValue != 5 &&  device.orientation.rawValue != 6 &&  device.orientation.rawValue != 2 {
+                
+                print("future : \(device.orientation.rawValue)  last : \(lastOrientation)")
+                let currOrientation: Int = device.orientation.rawValue == 4 ? 3 : device.orientation.rawValue
+                isOrientationChanging = (currOrientation != lastOrientation)
+                lastOrientation = currOrientation
+                toggleMenu(isMenuOpen)
+                
+            }
+        }
     }
     
     
@@ -302,6 +316,7 @@ public class ENSideMenu : NSObject, UIGestureRecognizerDelegate {
         var width:CGFloat
         var height:CGFloat
         (width, height) = adjustFrameDimensions( sourceView.frame.size.width, height: sourceView.frame.size.height)
+        
         if (bouncingEnabled) {
             
             animator.removeAllBehaviors()
