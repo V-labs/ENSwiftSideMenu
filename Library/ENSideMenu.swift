@@ -301,10 +301,7 @@ public class ENSideMenu : NSObject, UIGestureRecognizerDelegate {
         isMenuOpen = shouldOpen
         var width:CGFloat
         var height:CGFloat
-        print("source view W : \(sourceView.frame.size.width)  H : \(sourceView.frame.size.height)")
         (width, height) = adjustFrameDimensions( sourceView.frame.size.width, height: sourceView.frame.size.height)
-        print("returned W : \(width)  H : \(height)")
-        
         if (bouncingEnabled) {
             
             animator.removeAllBehaviors()
