@@ -208,8 +208,6 @@ public class ENSideMenu : NSObject, UIGestureRecognizerDelegate {
         let device = UIDevice.currentDevice()
         if device.generatesDeviceOrientationNotifications {
             if device.orientation.rawValue != 5 &&  device.orientation.rawValue != 6 &&  device.orientation.rawValue != 2 {
-                
-                print("future : \(device.orientation.rawValue)  last : \(lastOrientation)")
                 let currOrientation: Int = device.orientation.rawValue == 4 ? 3 : device.orientation.rawValue
                 isOrientationChanging = (currOrientation != lastOrientation)
                 lastOrientation = currOrientation
