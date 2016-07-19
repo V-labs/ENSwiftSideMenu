@@ -152,8 +152,12 @@ public class ENSideMenu : NSObject, UIGestureRecognizerDelegate {
     public var allowPanGesture : Bool = true
     private var panRecognizer : UIPanGestureRecognizer?
     
+    
+    /// A boolean value that indicates if the menu should rotate if device rotation is enabled.
+    public var shouldRotate: Bool = false
     private var isOrientationChanging: Bool = false
     private var lastOrientation: Int!
+    private var darkenBackgroundView: UIView?
     
     /**
      Initializes an instance of a `ENSideMenu` object.
@@ -204,17 +208,19 @@ public class ENSideMenu : NSObject, UIGestureRecognizerDelegate {
     
     func deviceOrientationChanged(notification: NSNotification) {
         // Very great manner to avoid side menu to be misplaced on device orientation...
-        
-        let device = UIDevice.currentDevice()
-        if device.generatesDeviceOrientationNotifications {
-            if device.orientation.rawValue != 5 &&  device.orientation.rawValue != 6 &&  device.orientation.rawValue != 2 {
-                let currOrientation: Int = device.orientation.rawValue == 4 ? 3 : device.orientation.rawValue
-                isOrientationChanging = (currOrientation != lastOrientation)
-                lastOrientation = currOrientation
-                toggleMenu(isMenuOpen)
-                
+        if shouldRotate {
+            let device = UIDevice.currentDevice()
+            if device.generatesDeviceOrientationNotifications {
+                if device.orientation.rawValue != 5 &&  device.orientation.rawValue != 6 &&  device.orientation.rawValue != 2 {
+                    let currOrientation: Int = device.orientation.rawValue == 4 ? 3 : device.orientation.rawValue
+                    isOrientationChanging = (currOrientation != lastOrientation)
+                    lastOrientation = currOrientation
+                    toggleMenu(isMenuOpen)
+                    
+                }
             }
         }
+        
     }
     
     
@@ -235,16 +241,16 @@ public class ENSideMenu : NSObject, UIGestureRecognizerDelegate {
         sideMenuContainerView.addSubview(self.menuViewController.view)
     }
     /*
-    public convenience init(sourceView: UIView, view: UIView, menuPosition: ENSideMenuPosition) {
-    self.init(sourceView: sourceView, menuPosition: menuPosition)
-    view.frame = sideMenuContainerView.bounds
-    view.autoresizingMask = [.FlexibleHeight, .FlexibleWidth]
-    sideMenuContainerView.addSubview(view)
-    }
-    */
+     public convenience init(sourceView: UIView, view: UIView, menuPosition: ENSideMenuPosition) {
+     self.init(sourceView: sourceView, menuPosition: menuPosition)
+     view.frame = sideMenuContainerView.bounds
+     view.autoresizingMask = [.FlexibleHeight, .FlexibleWidth]
+     sideMenuContainerView.addSubview(view)
+     }
+     */
     /**
-    Updates the frame of the side menu view.
-    */
+     Updates the frame of the side menu view.
+     */
     func updateFrame() {
         var width:CGFloat
         var height:CGFloat
@@ -265,8 +271,8 @@ public class ENSideMenu : NSObject, UIGestureRecognizerDelegate {
     private func adjustFrameDimensions( width: CGFloat, height: CGFloat ) -> (CGFloat,CGFloat) {
         if floor(NSFoundationVersionNumber) <= NSFoundationVersionNumber_iOS_7_1 && (UIApplication.sharedApplication().statusBarOrientation == UIInterfaceOrientation.LandscapeRight ||
             UIApplication.sharedApplication().statusBarOrientation == UIInterfaceOrientation.LandscapeLeft) {
-                // iOS 7.1 or lower and landscape mode -> interchange width and height
-                return (height, width)
+            // iOS 7.1 or lower and landscape mode -> interchange width and height
+            return (height, width)
         }
         else {
             
@@ -345,7 +351,7 @@ public class ENSideMenu : NSObject, UIGestureRecognizerDelegate {
             
             let collisionBehavior = UICollisionBehavior(items: [sideMenuContainerView])
             collisionBehavior.addBoundaryWithIdentifier("menuBoundary", fromPoint: CGPointMake(boundaryPointX, boundaryPointY),
-                toPoint: CGPointMake(boundaryPointX, height))
+                                                        toPoint: CGPointMake(boundaryPointX, height))
             animator.addBehavior(collisionBehavior)
             
             let pushBehavior = UIPushBehavior(items: [sideMenuContainerView], mode: UIPushBehaviorMode.Instantaneous)
@@ -366,9 +372,9 @@ public class ENSideMenu : NSObject, UIGestureRecognizerDelegate {
             }
             else {
                 destFrame = CGRectMake((shouldOpen) ? width-menuWidth : width+2.0,
-                    0,
-                    menuWidth,
-                    height)
+                                       0,
+                                       menuWidth,
+                                       height)
             }
             
             UIView.animateWithDuration(
@@ -387,9 +393,49 @@ public class ENSideMenu : NSObject, UIGestureRecognizerDelegate {
         
         if (shouldOpen) {
             delegate?.sideMenuWillOpen?()
+            self.showDarkenBackgroundView()
         } else {
             delegate?.sideMenuWillClose?()
+            self.removeDarkenBackgroundView()
         }
+    }
+    
+    func showDarkenBackgroundView() {
+        
+        if self.darkenBackgroundView == nil {
+            self.darkenBackgroundView = UIView(frame: self.sourceView.frame)
+            self.darkenBackgroundView?.backgroundColor = UIColor.blackColor()
+            self.darkenBackgroundView?.alpha = 0
+            
+            let tap = UITapGestureRecognizer(target:  self, action: "toggleMenu")
+            self.darkenBackgroundView?.addGestureRecognizer(tap)
+        }
+        
+        
+        self.sourceView.insertSubview(self.darkenBackgroundView!, belowSubview: self.sideMenuContainerView)
+        UIView.animateWithDuration(0.3) {
+            self.darkenBackgroundView!.alpha = 0.5
+        }
+        
+    }
+    
+    
+    
+    func removeDarkenBackgroundView() {
+        
+        UIView.animateWithDuration(0.3) {
+            self.darkenBackgroundView!.alpha = 0
+        }
+        
+        UIView.animateWithDuration(0.3, animations: {
+            
+            self.darkenBackgroundView?.alpha = 0
+            
+        }) { finish in
+            
+            self.darkenBackgroundView!.removeFromSuperview()
+        }
+        
     }
     
     public func gestureRecognizerShouldBegin(gestureRecognizer: UIGestureRecognizer) -> Bool {
