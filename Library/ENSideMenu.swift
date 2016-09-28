@@ -423,10 +423,6 @@ public class ENSideMenu : NSObject, UIGestureRecognizerDelegate {
     
     func removeDarkenBackgroundView() {
         
-        UIView.animateWithDuration(0.3) {
-            self.darkenBackgroundView?.alpha = 0
-        }
-        
         UIView.animateWithDuration(0.3, animations: {
             
             self.darkenBackgroundView?.alpha = 0
